@@ -112,12 +112,18 @@ def dataPlot(data):
 #Initial Statements:
 quit = False
 filter = False
+bacteriaTypes = np.array(["salonella enterica","bascillus cereus",
+                        "listeria","brochothrix thermosphacta"])
+
 
 #Program loop:
 while not quit:
     print(" 1. Load data.\n",
-           "2. Filter data.\n",
-           "3. Display statistics.\n",
+           "2. Filter data.")
+    if filter:
+        print(" (Filter is active)")
+
+    print(" 3. Display statistics.\n"
            "4. Generate plots.\n",
            "5. Quit.\n",
            "Choose: ")
@@ -128,8 +134,6 @@ while not quit:
         number = int(nInput)
     except ValueError:
         number = 0
-
-
 
     if number == 1:
         #dataLoad
@@ -162,15 +166,22 @@ while not quit:
             print("Limiting data to one bacteria-type. Type which.\n",":")
             bacteriaInput = input() 
 
-            finalData = np.delete(data,(np.arange(0,rows)[data[:,2]!=int(bacteriaInput)]),0)
-            print("Data is filtered. ")
-            filter = True
-        elif filterNumber == 2: #FUNGERER IKKE ENDNU
+            bacNumb = np.arange(1,5)[bacteriaInput.lower() == bacteriaTypes]
+
+            if (bacteriaInput.lower() == bacteriaTypes).any():
+                finalData = np.delete(data,(np.arange(0,rows)[data[:,2]!=bacNumb]),0)
+                print("Data is filtered. ")
+                filter = True
+            else:
+                print("Your input didn't match any bacteria.")
+        
+        
+        elif filterNumber == 2:
             print("Filter fo growth rate from: ")
             fromFilter = input()
             print("to:")
             toFilter = input()
-            finalData = np.delete(np.delete(data,(np.arange(0,rows)[data[:,1]>int(toFilter)]),0),(np.arange(0,rows)[data[:,1]<int(fromFilter)]),0)
+            finalData = np.delete(np.delete(data,(np.arange(0,rows)[data[:,1]>float(toFilter)]),0),(np.arange(0,rows)[data[:,1]<float(fromFilter)]),0)
             print("Data is filtered.")
             filter = True
         elif (filterNumber == 3) and (filter):
