@@ -50,8 +50,7 @@ def dataLoad(filename):
 
 #s214644; Nikolaj Hertz
 #Forslag til ændringer:
-#     -Betydende cifrer
-#     -?
+#     -
 def dataStatistics(data, statistic):
     """
     Parameters
@@ -74,8 +73,8 @@ def dataStatistics(data, statistic):
                     "rows","mean cold growth rate","mean hot growth rate"])
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
-        statFlo = np.array([np.mean(temp), np.mean(growth_Rate), np.std(temp), np.std(growth_Rate),
-                            rows, np.mean(temp[temp<20]), np.mean(temp[temp>50])])
+        statFlo = np.round(np.array([np.mean(temp), np.mean(growth_Rate), np.std(temp), np.std(growth_Rate),
+                            rows, np.mean(temp[temp<20]), np.mean(temp[temp>50])]),3)
 
     #sikkerhedsnet for hvis parameteren statistic har en udefineret værdi
     if not np.any((statStr==statistic.lower())):
@@ -139,15 +138,18 @@ while not quit:
         #Indsæt security for input
 
 
-        data = dataLoad(filename)
+        finalData = data = dataLoad(filename)
         rows, col = np.shape(data)
         print("Data is loaded.")
 
     elif number == 2:
         #Filter
         print(' 1. Filter for Bacteria type.\n',
-               '2. A range filter for Growth Rate.\n'
-               'Choose: ')
+               '2. A range filter for Growth Rate.')
+        if filter:
+            print(' 3. Disable Filter')
+           
+        print('Choose: ')
         filterInput = input()
         #Skkerhedsnet for input:
         try:
@@ -160,16 +162,21 @@ while not quit:
             print("Limiting data to one bacteria-type. Type which.\n",":")
             bacteriaInput = input() 
 
-            data = np.delete(data,(np.arange(0,rows)[data[:,2]!=int(bacteriaInput)]),0)
-            print("efter",data)
-        elif filterNumber == 2:
+            finalData = np.delete(data,(np.arange(0,rows)[data[:,2]!=int(bacteriaInput)]),0)
+            print("Data is filtered. ")
+            filter = True
+        elif filterNumber == 2: #FUNGERER IKKE ENDNU
             print("Filter fo growth rate from: ")
             fromFilter = input()
             print("to:")
             toFilter = input()
-
-            data = np.delete(np.delete(data,(np.arange(0,rows)[data[:,1]>int(toFilter)]),0),(np.arange(0,rows)[data[:,1]<int(fromFilter)]),0)
-            print("efter", data)
+            finalData = np.delete(np.delete(data,(np.arange(0,rows)[data[:,1]>int(toFilter)]),0),(np.arange(0,rows)[data[:,1]<int(fromFilter)]),0)
+            print("Data is filtered.")
+            filter = True
+        elif (filterNumber == 3) and (filter):
+            finalData = data
+            filter = False
+            print("Filter is removed.")
         else:
             print("Wrong input. You must type a number between 1 and 2!")
 
@@ -180,14 +187,14 @@ while not quit:
         statistic = input()
         #Sikkerhed for input
         try:
-            output = dataStatistics(data, statistic)
+            output = dataStatistics(finalData, statistic)
             print(statistic[0].upper()+statistic[1:].lower(),":",output)
         except NameError:
             print("You have not loaded any data yet!")
 
     elif number == 4:
         #Generate plots
-        dataPlot(data)
+        dataPlot(finalData)
 
 
     elif number == 5:
