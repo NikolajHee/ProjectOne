@@ -2,7 +2,38 @@
 #	Leg lidt med matricer (index, muligvis slicing)
 #	Og det at loade filer
 
+def dataLoad(filename):
+ import numpy as np
+ file=open(filename,"r")
+#An array with the txt file's lines
+ aMatrix=np.array(file.read().splitlines())
+# Arrays with zeros based on the number of lines in the file
+ temp=np.zeros(len(aMatrix))
+ growth=np.zeros(len(aMatrix))
+ bacteria=np.zeros(len(aMatrix))
 
+#Converts all the strings to floats
+ for i in range(len(aMatrix)):
+  A=list(map(float,aMatrix[i].split()))
+  B=np.array(A)
+  if (10<=B[0]<=60) & (B[1]>0) & (B[2]==1 or B[2]==2 or B[2]==3 or B[2]==4):
+   temp[i]=B[0]
+   growth[i]=B[1]
+   bacteria[i]=B[2]
+  elif 10>B[0] or B[0]>60:
+      print("Error linje", i+1,"\n--> Temperaturen er ikke mellem 10 og 60")
+  elif B[1]<=0:
+      print("Error linje", i+1,"\n--> Growth Rate er ikke større end nul")
+  else:
+      print("Error linje", i+1,"\n--> Den valgte bakteriekategori findes ikke")
+     
+ 
+#sætter de tre arrays sammen, men får at få dem som kolonner transponeres matrixen
+ bmatrix=np.vstack((temp,growth,bacteria)).T
+#Danner en ny matrix med alle rækkerne, som ikke er nuller
+ data= bmatrix[np.all(bmatrix != 0,axis=1)]
+
+ return data
 
 
 
