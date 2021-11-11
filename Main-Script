@@ -1,11 +1,13 @@
 #Project 1: Bakterie-Dataanalyse
+
+
 #imports
-
-
 import numpy as np
 import warnings
+import matplotlib.pyplot as plt
+import time
 
-
+#Gustav ..
 def dataLoad(filename):
     """
     Parameters
@@ -33,11 +35,11 @@ def dataLoad(filename):
             growth[i]=B[1]
             bacteria[i]=B[2]
         elif 10>B[0] or B[0]>60:
-            print("Error linje", i+1,"\n--> Temperaturen er ikke mellem 10 og 60")
+            print("Error line", i+1,"\n--> The temperature isn't between 10 and 60!")
         elif B[1]<=0:
-            print("Error linje", i+1,"\n--> Growth Rate er ikke større end nul")
+            print("Error line", i+1,"\n--> The growth rate isn't above zero!")
         else:
-            print("Error linje", i+1,"\n--> Den valgte bakteriekategori findes ikke")
+            print("Error line", i+1,"\n--> The chosen type of bacteria doesn't work!")
      
  
     #sætter de tre arrays sammen, men får at få dem som kolonner transponeres matrixen
@@ -49,69 +51,18 @@ def dataLoad(filename):
 
 
 #s214644; Nikolaj Hertz
-#Forslag til ændringer:
-#     -
-def dataStatistics(data, statistic):
-    """
-    Parameters
-    ----------
-    data: Nx3 matrix with colums temperature, groth rate and bacteria.
-    statistic: required statistical scalar.
-
-    Returns
-    -------
-    Scalar, the result of the statistical measurement.  
-    """
-    temp = data[:,0]
-    growth_Rate = data[:,1]
-    bacteria = data[:,2]
-    errorMsg = 'Wrong input.'
-
-    rows, col = np.shape(data) 
-
-    statStr = np.array(["mean temperature","mean growth rate","std temperature","std growth rate",
-                    "rows","mean cold growth rate","mean hot growth rate"])
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        statFlo = np.round(np.array([np.mean(temp), np.mean(growth_Rate), np.std(temp), np.std(growth_Rate),
-                            rows, np.mean(temp[temp<20]), np.mean(temp[temp>50])]),3)
-
-    #sikkerhedsnet for hvis parameteren statistic har en udefineret værdi
-    if not np.any((statStr==statistic.lower())):
-        return errorMsg
+from dataStatistics import *
+#Benjamin
+from dataPlot import *
 
 
-    #array med den efterspurgte statistiske værdi
-    expectedStat = ((statStr==statistic.lower())*statFlo)
-    
-    try:
-        result = expectedStat[expectedStat!=0][0]
-    except IndexError:
-        result = 0.0
-    finally:
-        return result
-
-
-def dataPlot(data):
-    """
-    Parameters
-    __________
-    data : N x 3 - Matrix
-
-    Returns:
-    --------
-    None (displays plots)
-    """
-
-
-
-    return
-
-
-
+#Vi var alle med til main-script
 #Initial Statements:
-quit = False
-filter = False
+quit = False   #loopet kører indtil quit = True
+filter = False #flere ting i løbet af scriptet afhænger af hvorledes filteret er aktivt.
+dataL = False  #Fortæller hvorledes om man har loadet data endnu
+filterN = 2
+
 bacteriaTypes = np.array(["salonella enterica","bascillus cereus",
                         "listeria","brochothrix thermosphacta"])
 
@@ -124,12 +75,12 @@ while not quit:
         print(" (Filter is active)")
 
     print(" 3. Display statistics.\n"
-           "4. Generate plots.\n",
+           " 4. Generate plots.\n",
            "5. Quit.\n",
            "Choose: ")
     nInput = input()
     
-    #Sikkerhedsnet for input:
+    #Sikkerhed for input:
     try:
         number = int(nInput)
     except ValueError:
@@ -139,14 +90,19 @@ while not quit:
         #dataLoad
         print("What is the filename: ")
         filename = input()
-        #Indsæt security for input
 
+        #Sikkerhed for input:
+        try:
+            finalData = data = dataLoad(filename)
+            print("Data is loaded.")
+            dataL = True
+            rows, col = np.shape(data)
+            time.sleep(3)
+        except FileNotFoundError:
+            print("File not found!")
+            time.sleep(1.5)
 
-        finalData = data = dataLoad(filename)
-        rows, col = np.shape(data)
-        print("Data is loaded.")
-
-    elif number == 2:
+    elif (number == 2) and (dataL):
         #Filter
         print(' 1. Filter for Bacteria type.\n',
                '2. A range filter for Growth Rate.')
@@ -155,7 +111,7 @@ while not quit:
            
         print('Choose: ')
         filterInput = input()
-        #Skkerhedsnet for input:
+        #Sikkerhed for input:
         try:
             filterNumber = int(filterInput)
         except ValueError:
@@ -172,27 +128,37 @@ while not quit:
                 finalData = np.delete(data,(np.arange(0,rows)[data[:,2]!=bacNumb]),0)
                 print("Data is filtered. ")
                 filter = True
+                filterN = 3
+                time.sleep(1)
             else:
                 print("Your input didn't match any bacteria.")
+                time.sleep(1.5)
         
         
-        elif filterNumber == 2:
+        elif (filterNumber == 2):
             print("Filter fo growth rate from: ")
             fromFilter = input()
+            #Sikkerhed
             print("to:")
             toFilter = input()
+            #Sikkerhed
             finalData = np.delete(np.delete(data,(np.arange(0,rows)[data[:,1]>float(toFilter)]),0),(np.arange(0,rows)[data[:,1]<float(fromFilter)]),0)
             print("Data is filtered.")
             filter = True
+            filterN = 3
+            time.sleep(1)
         elif (filterNumber == 3) and (filter):
             finalData = data
             filter = False
+            filterN = 2
             print("Filter is removed.")
+            time.sleep(1)
         else:
-            print("Wrong input. You must type a number between 1 and 2!")
+            print("Wrong input. You must type a number between 1 and {}!".format(round(filterN)))
+            time.sleep(1.5)
 
 
-    elif number == 3:
+    elif (number == 3) and (dataL):
         #Display Statistics
         print("What statistic do you want: ")
         statistic = input()
@@ -200,19 +166,26 @@ while not quit:
         try:
             output = dataStatistics(finalData, statistic)
             print(statistic[0].upper()+statistic[1:].lower(),":",output)
+            time.sleep(2)
         except NameError:
             print("You have not loaded any data yet!")
+            time.sleep(1)
 
-    elif number == 4:
+    elif (number == 4) and (dataL):
         #Generate plots
-        dataPlot(finalData)
+        try:
+            dataPlot(finalData)
+        except NameError:
+            print("You have not loaded any data yet!")
+            time.sleep(1)
 
 
     elif number == 5:
         #Qut
         quit = True
-
+    elif (not dataL) and (number<=5) and (number>=1):
+        print("Error. You have not loaded any data!")
+        time.sleep(1)
     else:
-        print("Wrong input. You must type a number between 1 and 5!")
-
-
+        print("Error. Your input wasn't a whole number between 1 and 5!")
+        time.sleep(1)
