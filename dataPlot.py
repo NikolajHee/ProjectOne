@@ -1,6 +1,6 @@
 
 
-
+#Lavet af Benjamin: #s214590
 
 import matplotlib.pyplot as plt
 import numpy as np

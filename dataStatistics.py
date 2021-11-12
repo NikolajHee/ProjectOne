@@ -2,6 +2,8 @@
 
 #Skrevet af Nikolaj Hertz
 #s214644
+import numpy as np
+import warnings
 
 
 def dataStatistics(data, statistic):

@@ -8,55 +8,16 @@ import matplotlib.pyplot as plt
 import time
 
 #Gustav ..
-def dataLoad(filename):
-    """
-    Parameters
-    ---------
-    filename: Name of file containing Nx3-matrix 
-
-    Returns
-    -------
-    Nx3-Matrix but filtered (compromised rows are excluded)
-    """
-    file=open(filename,"r")
-    #An array with the txt file's lines
-    aMatrix=np.array(file.read().splitlines())
-    # Arrays with zeros based on the number of lines in the file
-    temp=np.zeros(len(aMatrix))
-    growth=np.zeros(len(aMatrix))
-    bacteria=np.zeros(len(aMatrix))
-
-    #Converts all the strings to floats
-    for i in range(len(aMatrix)):
-        A=list(map(float,aMatrix[i].split()))
-        B=np.array(A)
-        if (10<=B[0]<=60) & (B[1]>0) & (B[2]==1 or B[2]==2 or B[2]==3 or B[2]==4):
-            temp[i]=B[0]
-            growth[i]=B[1]
-            bacteria[i]=B[2]
-        elif 10>B[0] or B[0]>60:
-            print("Error line", i+1,"\n--> The temperature isn't between 10 and 60!")
-        elif B[1]<=0:
-            print("Error line", i+1,"\n--> The growth rate isn't above zero!")
-        else:
-            print("Error line", i+1,"\n--> The chosen type of bacteria doesn't work!")
-     
- 
-    #sætter de tre arrays sammen, men får at få dem som kolonner transponeres matrixen
-    bmatrix=np.vstack((temp,growth,bacteria)).T
-    #Danner en ny matrix med alle rækkerne, som ikke er nuller
-    data= bmatrix[np.all(bmatrix != 0,axis=1)]
-
-    return data
-
-
-#s214644; Nikolaj Hertz
+from dataLoad import *
+#Nikolaj
 from dataStatistics import *
 #Benjamin
 from dataPlot import *
 
 
 #Vi var alle med til main-script
+
+
 #Initial Statements:
 quit = False   #loopet kører indtil quit = True
 filter = False #flere ting i løbet af scriptet afhænger af hvorledes filteret er aktivt.
@@ -69,6 +30,7 @@ bacteriaTypes = np.array(["salonella enterica","bascillus cereus",
 
 #Program loop:
 while not quit:
+    #Menu, hvor man kan se om filteret er aktivt. 
     print(" 1. Load data.\n",
            "2. Filter data.")
     if filter:
@@ -85,7 +47,8 @@ while not quit:
         number = int(nInput)
     except ValueError:
         number = 0
-
+    
+    #Ekspertsystem:
     if number == 1:
         #dataLoad
         print("What is the filename: ")
@@ -124,10 +87,8 @@ while not quit:
 
             bacNumb = np.arange(1,5)[bacteriaInput.lower() == bacteriaTypes]
 
-            if (bacteriaInput.lower() == bacteriaTypes).any():
-                #finalData = np.delete(data,(np.arange(0,rows)[data[:,2]!=bacNumb]),0)
+            if (bacteriaInput.lower() == bacteriaTypes).any(): #sikkerhed for input
                 finalData = data[data[:,2]==bacNumb]
-                print(finalData)
                 print("Data is filtered. ")
                 filter = True
                 filterN = 3
@@ -138,17 +99,25 @@ while not quit:
         
         
         elif (filterNumber == 2):
-            print("Filter fo growth rate from: ")
-            fromFilter = input()
-            #Sikkerhed
-            print("to:")
-            toFilter = input()
-            #Sikkerhed
-            finalData = np.delete(np.delete(data,(np.arange(0,rows)[data[:,1]>float(toFilter)]),0),(np.arange(0,rows)[data[:,1]<float(fromFilter)]),0)
-            print("Data is filtered.")
-            filter = True
-            filterN = 3
-            time.sleep(1)
+            #sikkerhed for input
+            try: 
+                print("The growth rate in the loaded data goes from {} to {}".format(np.min(data[:,1]),np.max((data[:,1]))))
+                intervala=float(input("Filter growth rate from: "))
+                intervalz=float(input("Filter growth rate to: "))
+                
+                if (intervala>intervalz):
+                    print("Error. The from-value must be lower than the to-value!")
+                elif (data[(data[:,1]>=intervala) & (data[:,1]<=intervalz)].size==0):
+                    print("Interval returned an empty array. Filter initialization interrupted.")
+                else:
+                    finalData=data[(data[:,1]>=intervala) & (data[:,1]<=intervalz)]
+                    filter = True
+                    filterN = 3
+                    print("Data is filtered.")
+            except ValueError:
+                print("Error. Input must be a number, where the decimals are seperated by a period.")
+            finally:
+                time.sleep(1)
         elif (filterNumber == 3) and (filter):
             finalData = data
             filter = False
@@ -168,9 +137,12 @@ while not quit:
         try:
             output = dataStatistics(finalData, statistic)
             print(statistic[0].upper()+statistic[1:].lower(),":",output)
-            time.sleep(2)
+            time.sleep(1.5)
         except NameError:
             print("You have not loaded any data yet!")
+            time.sleep(1)
+        except IndexError:
+            print("You must type something!")
             time.sleep(1)
 
     elif (number == 4) and (dataL):
@@ -183,7 +155,8 @@ while not quit:
 
 
     elif number == 5:
-        #Qut
+        #Quit
+        print("Goodbye.")
         quit = True
     elif (not dataL) and (number<=5) and (number>=1):
         print("Error. You have not loaded any data!")
